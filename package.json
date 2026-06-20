@@ -1,0 +1,63 @@
+{
+  "name": "bangladesh-fashion-commerce",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "latest",
+    "@hookform/resolvers": "latest",
+    "@next-auth/prisma-adapter": "latest",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "latest",
+    "@types/pg": "^8.20.0",
+    "bcryptjs": "latest",
+    "clsx": "latest",
+    "dotenv": "^17.4.2",
+    "lucide-react": "latest",
+    "next": "latest",
+    "next-auth": "latest",
+    "nodemailer": "latest",
+    "pg": "^8.22.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-hook-form": "latest",
+    "tailwind-merge": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@humanfs/node": "^0.16.8",
+    "@tailwindcss/postcss": "^4.3.1",
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@types/bcryptjs": "latest",
+    "@types/node": "latest",
+    "@types/nodemailer": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitest/utils": "^2.1.9",
+    "autoprefixer": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "jsdom": "latest",
+    "postcss": "latest",
+    "prisma": "latest",
+    "tailwindcss": "latest",
+    "tinyrainbow": "^3.0.0",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vitest": "^2.1.9"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

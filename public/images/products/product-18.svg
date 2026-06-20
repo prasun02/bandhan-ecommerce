@@ -1,0 +1,16 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img" aria-label="Premium Katan Silk Saree">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF9F5"/><stop offset="1" stop-color="#8B5A2B"/></linearGradient>
+    <radialGradient id="glow" cx="30%" cy="20%" r="70%"><stop offset="0" stop-color="#fff9f5" stop-opacity=".8"/><stop offset="1" stop-color="#fff9f5" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1200" height="1500" fill="url(#bg)"/>
+  <rect width="1200" height="1500" fill="url(#glow)"/>
+  <path d="M245 1260 C390 980 350 690 508 430 C545 370 655 370 692 430 C850 690 810 980 955 1260 Z" fill="#fff9f5" opacity=".62"/>
+  <path d="M470 420 C520 365 680 365 730 420 C680 485 520 485 470 420 Z" fill="#7A1F3D" opacity=".82"/>
+  <path d="M360 760 C500 700 700 700 840 760" fill="none" stroke="#C79A45" stroke-width="18" stroke-linecap="round" opacity=".9"/>
+  <path d="M330 910 C500 835 700 835 870 910" fill="none" stroke="#B85C76" stroke-width="14" stroke-linecap="round" opacity=".75"/>
+  <circle cx="600" cy="342" r="74" fill="#FFF9F5" opacity=".78"/>
+  <text x="600" y="1080" text-anchor="middle" font-family="Georgia, serif" font-size="70" font-weight="700" fill="#2B2527">Premium Katan Silk Saree</text>
+  <text x="600" y="1150" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#756A6E">Premium fashion demo</text>
+  <text x="600" y="1245" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" letter-spacing="8" fill="#7A1F3D">NOOR BOUTIQUE</text>
+</svg>
