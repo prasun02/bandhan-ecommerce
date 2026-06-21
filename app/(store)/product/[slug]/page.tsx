@@ -3,6 +3,7 @@ import { ShieldCheck, Star, Truck, WalletCards, type LucideIcon } from "lucide-r
 import { ProductCard } from "@/components/product-card";
 import { ProductPurchasePanel } from "@/components/product-purchase-panel";
 import { getProductBySlug, getPublishedProducts } from "@/lib/services/catalog";
+import { databaseUnavailableCopy, isCatalogDatabaseError } from "@/lib/database-errors";
 import { formatMoney } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ProductImage } from "@/components/product-image";
@@ -17,17 +18,31 @@ const isValidImageUrl = (item: ProductImageSource): item is string =>
 
 export async function generateMetadata({ params }: { params: Params }) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProductBySlug(slug).catch((error: unknown) => {
+    if (isCatalogDatabaseError(error)) return null;
+    throw error;
+  });
   return { title: product?.name ?? "Product", description: product?.shortDescription };
 }
 
 export default async function ProductPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  let databaseUnavailable = false;
+  const product = await getProductBySlug(slug).catch((error: unknown) => {
+    if (isCatalogDatabaseError(error)) {
+      databaseUnavailable = true;
+      return null;
+    }
+    throw error;
+  });
+  if (databaseUnavailable) return <ProductDatabaseUnavailable />;
   if (!product) notFound();
   const price = product.salePrice ?? product.regularPrice;
   const discount = product.salePrice ? Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) : 0;
-  const related = (await getPublishedProducts({ category: product.category })).filter((item: Product) => item.id !== product.id).slice(0, 4);
+  const related = (await getPublishedProducts({ category: product.category }).catch((error: unknown) => {
+    if (isCatalogDatabaseError(error)) return [];
+    throw error;
+  })).filter((item: Product) => item.id !== product.id).slice(0, 4);
   const variantImageSources: ProductImageSource[] = product.variants.map((variant: ProductVariant) => variant.image);
   const rawProductImages: ProductImageSource[] = [...product.images, ...variantImageSources];
   const productImages: string[] = Array.from(new Set(rawProductImages.filter(isValidImageUrl)));
@@ -92,6 +107,17 @@ export default async function ProductPage({ params }: { params: Params }) {
           {related.map((item: Product) => <ProductCard key={item.id} product={item} />)}
         </div>
       </section>
+    </main>
+  );
+}
+
+function ProductDatabaseUnavailable() {
+  return (
+    <main className="container py-14">
+      <div className="rounded-md bg-white p-8 shadow-card">
+        <h1 className="font-display text-3xl font-black text-rosewood">Product temporarily unavailable</h1>
+        <p className="mt-3 max-w-2xl leading-7 text-ink/70">{databaseUnavailableCopy()}</p>
+      </div>
     </main>
   );
 }

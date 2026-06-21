@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicApiErrorMessage } from "@/lib/database-errors";
 import { trackOrder } from "@/lib/services/order-db";
 
 export async function POST(request: Request) {
@@ -6,6 +7,6 @@ export async function POST(request: Request) {
     const order = await trackOrder(await request.json());
     return NextResponse.json(order);
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Tracking failed." }, { status: 400 });
+    return NextResponse.json({ error: publicApiErrorMessage("Order tracking failed.", error, "Tracking failed.") }, { status: 400 });
   }
 }

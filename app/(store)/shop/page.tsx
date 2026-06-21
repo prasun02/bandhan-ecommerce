@@ -1,5 +1,6 @@
 import { ProductCard } from "@/components/product-card";
 import { categories, collections, type Product } from "@/data/catalog";
+import { databaseUnavailableCopy, isCatalogDatabaseError } from "@/lib/database-errors";
 import { getPublishedProducts } from "@/lib/services/catalog";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -21,7 +22,11 @@ export default async function ShopPage({ searchParams }: { searchParams: SearchP
     inStock: valueOf(params.inStock),
     sort: valueOf(params.sort)
   };
-  const result: Product[] = await getPublishedProducts(filters);
+  const result: Product[] | null = await getPublishedProducts(filters).catch((error: unknown) => {
+    if (isCatalogDatabaseError(error)) return null;
+    throw error;
+  });
+  if (!result) return <ShopDatabaseUnavailable />;
 
   return (
     <main className="container py-8">
@@ -77,6 +82,17 @@ export default async function ShopPage({ searchParams }: { searchParams: SearchP
           </div>
           {result.length === 0 ? <div className="mt-5 rounded-md bg-white p-8 text-center text-warmgrey shadow-card">No products match these filters.</div> : null}
         </section>
+      </div>
+    </main>
+  );
+}
+
+function ShopDatabaseUnavailable() {
+  return (
+    <main className="container py-14">
+      <div className="rounded-md bg-white p-8 shadow-card">
+        <h1 className="font-display text-3xl font-black text-rosewood">Shop temporarily unavailable</h1>
+        <p className="mt-3 max-w-2xl leading-7 text-ink/70">{databaseUnavailableCopy()}</p>
       </div>
     </main>
   );

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicApiErrorMessage } from "@/lib/database-errors";
 import { getCurrentUser } from "@/lib/auth";
 import { createOrder } from "@/lib/services/order-db";
 import { getPaymentProvider } from "@/lib/payments";
@@ -19,6 +20,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ orderNumber: order.orderNumber, totals: { total: order.total }, paymentStatus: order.paymentStatus, payment }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Checkout failed" }, { status: 400 });
+    return NextResponse.json({ error: publicApiErrorMessage("Checkout failed.", error, "Checkout failed") }, { status: 400 });
   }
 }

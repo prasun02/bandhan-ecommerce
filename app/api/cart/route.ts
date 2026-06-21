@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicApiErrorMessage } from "@/lib/database-errors";
 import { getCurrentUser } from "@/lib/auth";
 import { getCart, upsertCartItem } from "@/lib/services/cart";
 
@@ -9,7 +10,7 @@ export async function GET(request: Request) {
     const cart = await getCart(user?.id ? { userId: user.id } : { guestKey });
     return NextResponse.json(cart ?? { items: [] });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Cart lookup failed." }, { status: 400 });
+    return NextResponse.json({ error: publicApiErrorMessage("Cart lookup failed.", error, "Cart lookup failed.") }, { status: 400 });
   }
 }
 
@@ -20,6 +21,6 @@ export async function POST(request: Request) {
     const item = await upsertCartItem(body, user?.id ? { userId: user.id } : { guestKey: body.guestKey });
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Cart update failed." }, { status: 400 });
+    return NextResponse.json({ error: publicApiErrorMessage("Cart update failed.", error, "Cart update failed.") }, { status: 400 });
   }
 }

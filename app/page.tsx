@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { categories, categoryImages, type Product } from "@/data/catalog";
 import { ProductImage } from "@/components/product-image";
 import { getPublishedProducts } from "@/lib/services/catalog";
+import { databaseUnavailableCopy, isCatalogDatabaseError } from "@/lib/database-errors";
 
 const sectionTitle = (eyebrow: string, title: string) => (
   <div className="mx-auto max-w-2xl text-center">
@@ -16,7 +17,11 @@ const sectionTitle = (eyebrow: string, title: string) => (
 );
 
 export default async function HomePage() {
-  const products = await getPublishedProducts();
+  const products = await getPublishedProducts().catch((error: unknown) => {
+    if (isCatalogDatabaseError(error)) return null;
+    throw error;
+  });
+  if (!products) return <CatalogDatabaseUnavailable />;
   const newArrivals = products.filter((product) => product.newArrival).slice(0, 8);
   const bestSellers = products.filter((product) => product.bestSeller).slice(0, 8);
   const bridal = products.filter((product) => product.collection === "Bridal Collection").slice(0, 4);
@@ -154,6 +159,17 @@ export default async function HomePage() {
           </div>
         </form>
       </section>
+    </main>
+  );
+}
+
+function CatalogDatabaseUnavailable() {
+  return (
+    <main className="container py-14">
+      <div className="rounded-md bg-white p-8 shadow-card">
+        <h1 className="font-display text-3xl font-black text-rosewood">Products temporarily unavailable</h1>
+        <p className="mt-3 max-w-2xl leading-7 text-ink/70">{databaseUnavailableCopy()}</p>
+      </div>
     </main>
   );
 }

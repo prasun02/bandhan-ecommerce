@@ -1,5 +1,6 @@
 import "server-only";
 import { products, type Product } from "@/data/catalog";
+import { CatalogDatabaseError, logDatabaseError } from "@/lib/database-errors";
 import { prisma } from "@/lib/prisma";
 
 export type ProductFilters = {
@@ -73,16 +74,21 @@ export function mapDbProductToStorefrontProduct(product: NonNullable<DbProduct>)
 }
 
 export async function getDbProductBySlug(slug: string) {
-  return prisma.product.findFirst({
-    where: { slug, status: "PUBLISHED", deletedAt: null },
-    include: {
-      category: true,
-      collection: true,
-      brand: true,
-      images: { orderBy: { sortOrder: "asc" } },
-      variants: { orderBy: [{ color: "asc" }, { size: "asc" }] }
-    }
-  });
+  try {
+    return await prisma.product.findFirst({
+      where: { slug, status: "PUBLISHED", deletedAt: null },
+      include: {
+        category: true,
+        collection: true,
+        brand: true,
+        images: { orderBy: { sortOrder: "asc" } },
+        variants: { orderBy: [{ color: "asc" }, { size: "asc" }] }
+      }
+    });
+  } catch (error) {
+    logDatabaseError("Product lookup failed.", error);
+    throw new CatalogDatabaseError();
+  }
 }
 
 export async function getProductBySlug(slug: string) {
@@ -91,32 +97,39 @@ export async function getProductBySlug(slug: string) {
 }
 
 export async function getPublishedProducts(filters: ProductFilters = {}) {
-  const dbProducts = await prisma.product.findMany({
-    where: {
-      status: "PUBLISHED",
-      deletedAt: null,
-      ...(filters.q
-        ? {
-            OR: [
-              { name: { contains: filters.q, mode: "insensitive" } },
-              { shortDescription: { contains: filters.q, mode: "insensitive" } },
-              { sku: { contains: filters.q, mode: "insensitive" } }
-            ]
-          }
-        : {}),
-      ...(filters.category ? { category: { name: filters.category } } : {}),
-      ...(filters.collection ? { collection: { name: filters.collection } } : {}),
-      ...(filters.fabric ? { fabricType: { contains: filters.fabric, mode: "insensitive" } } : {}),
-      ...(filters.inStock === "true" ? { stockQuantity: { gt: 0 } } : {})
-    },
-    include: {
-      category: true,
-      collection: true,
-      brand: true,
-      images: { orderBy: { sortOrder: "asc" } },
-      variants: { orderBy: [{ color: "asc" }, { size: "asc" }] }
+  const dbProducts = await (async () => {
+    try {
+      return await prisma.product.findMany({
+        where: {
+          status: "PUBLISHED",
+          deletedAt: null,
+          ...(filters.q
+            ? {
+                OR: [
+                  { name: { contains: filters.q, mode: "insensitive" } },
+                  { shortDescription: { contains: filters.q, mode: "insensitive" } },
+                  { sku: { contains: filters.q, mode: "insensitive" } }
+                ]
+              }
+            : {}),
+          ...(filters.category ? { category: { name: filters.category } } : {}),
+          ...(filters.collection ? { collection: { name: filters.collection } } : {}),
+          ...(filters.fabric ? { fabricType: { contains: filters.fabric, mode: "insensitive" } } : {}),
+          ...(filters.inStock === "true" ? { stockQuantity: { gt: 0 } } : {})
+        },
+        include: {
+          category: true,
+          collection: true,
+          brand: true,
+          images: { orderBy: { sortOrder: "asc" } },
+          variants: { orderBy: [{ color: "asc" }, { size: "asc" }] }
+        }
+      });
+    } catch (error) {
+      logDatabaseError("Published product query failed.", error);
+      throw new CatalogDatabaseError();
     }
-  });
+  })();
 
   let result = dbProducts.map(mapDbProductToStorefrontProduct).filter((product) => {
     const matchesSize = !filters.size || product.variants.some((variant) => variant.size === filters.size);

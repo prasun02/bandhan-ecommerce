@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicApiErrorMessage } from "@/lib/database-errors";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { importDemoProducts, parseProductImportCsv, validateUploadFile } from "@/lib/services/product-import";
@@ -37,7 +38,6 @@ export async function POST(request: Request) {
     const summary = await importDemoProducts(prisma, { csvText, projectRoot: process.cwd() });
     return NextResponse.json(summary);
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "CSV import failed." }, { status: 400 });
+    return NextResponse.json({ error: publicApiErrorMessage("CSV product import failed.", error, "CSV import failed.") }, { status: 400 });
   }
 }
-
