@@ -11,7 +11,10 @@ export default async function AdminProductsPage() {
 
   return (
     <main className="container py-8">
-      <h1 className="text-3xl font-black">Product management</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-3xl font-black">Product management</h1>
+        <a href="/admin/products/import" className="rounded-md bg-rosewood px-4 py-2 text-sm font-bold text-white">Import CSV</a>
+      </div>
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <AdminCategoryForm />
         <AdminProductForm categories={dbCategories} />
