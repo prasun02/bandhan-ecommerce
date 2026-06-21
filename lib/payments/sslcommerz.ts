@@ -1,3 +1,4 @@
+import "server-only";
 import type { PaymentProvider } from "@/lib/payments/provider";
 
 export class SslCommerzPaymentProvider implements PaymentProvider {

@@ -1,3 +1,4 @@
+import "server-only";
 import { PublicationStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { categoryCreateSchema, productCreateSchema, productUpdateSchema } from "@/lib/validations";

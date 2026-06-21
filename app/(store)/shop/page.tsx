@@ -1,5 +1,5 @@
 import { ProductCard } from "@/components/product-card";
-import { categories, collections } from "@/data/catalog";
+import { categories, collections, type Product } from "@/data/catalog";
 import { getPublishedProducts } from "@/lib/services/catalog";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -21,7 +21,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SearchP
     inStock: valueOf(params.inStock),
     sort: valueOf(params.sort)
   };
-  const result = await getPublishedProducts(filters);
+  const result: Product[] = await getPublishedProducts(filters);
 
   return (
     <main className="container py-8">
@@ -73,7 +73,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SearchP
             <p className="font-semibold">{result.length} products found</p>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-            {result.map((product) => <ProductCard key={product.id} product={product} />)}
+            {result.map((product: Product) => <ProductCard key={product.id} product={product} />)}
           </div>
           {result.length === 0 ? <div className="mt-5 rounded-md bg-white p-8 text-center text-warmgrey shadow-card">No products match these filters.</div> : null}
         </section>

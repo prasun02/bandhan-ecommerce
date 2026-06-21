@@ -1,3 +1,4 @@
+import "server-only";
 import { products, type Product } from "@/data/catalog";
 import { prisma } from "@/lib/prisma";
 

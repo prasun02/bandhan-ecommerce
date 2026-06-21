@@ -1,3 +1,4 @@
+import "server-only";
 import { OrderStatus, PaymentMethod, PaymentStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { checkoutRequestSchema, adminOrderUpdateSchema, trackOrderSchema, type CheckoutInput } from "@/lib/validations";
