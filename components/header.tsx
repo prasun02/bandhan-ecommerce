@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { ChevronDown, Heart, Menu, Phone, Search, ShoppingBag, UserRound } from "lucide-react";
 import { categories } from "@/data/catalog";
+import { cookies } from "next/headers";
+import { getCurrentUser } from "@/lib/auth";
+import { CART_COOKIE, getCartSummary } from "@/lib/services/cart";
+import { LogoutButton } from "@/components/logout-button";
 
 const navItems = [
   ["Home", "/"],
@@ -15,7 +19,12 @@ const navItems = [
   ["Track Order", "/track-order"]
 ];
 
-export function Header() {
+export async function Header() {
+  const [user, cookieStore] = await Promise.all([getCurrentUser(), cookies()]);
+  const guestKey = cookieStore.get(CART_COOKIE)?.value;
+  const cart = await getCartSummary(user ? { userId: user.id } : guestKey ? { guestKey } : undefined)
+    .catch(() => ({ totalQuantity: 0 }));
+  const firstName = user?.name?.trim().split(/\s+/)[0];
   return (
     <header className="sticky top-0 z-30 border-b border-rosewood/10 bg-ivory/95 shadow-sm backdrop-blur">
       <div className="bg-rosewood px-3 py-2 text-center text-xs font-semibold tracking-wide text-white">
@@ -41,17 +50,19 @@ export function Header() {
           <a href="tel:+8801700000000" className="hidden items-center gap-2 whitespace-nowrap rounded-full bg-blush px-3 py-2 text-xs font-bold text-rosewood 2xl:flex">
             <Phone className="h-3.5 w-3.5" /> +880 1700-000000
           </a>
-          <Link href="/account" aria-label="Account" className="rounded-md p-2 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-saffron">
+          <Link href={user ? "/account" : "/login"} aria-label={user ? "My Account" : "Login"} className="flex items-center gap-1 rounded-md p-2 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-saffron">
             <UserRound className="h-5 w-5" />
+            {firstName ? <span className="hidden text-xs font-bold sm:inline">{firstName}</span> : null}
           </Link>
-          <Link href="/account#wishlist" aria-label="Wishlist" className="relative rounded-md p-2 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-saffron">
+          <Link href="/account/wishlist" aria-label="Wishlist" className="relative rounded-md p-2 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-saffron">
             <Heart className="h-5 w-5" />
             <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-white text-[10px] font-black text-rosewood">0</span>
           </Link>
           <Link href="/cart" aria-label="Cart" className="relative rounded-md p-2 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-saffron">
             <ShoppingBag className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-saffron text-[10px] font-black text-ink">0</span>
+            <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-saffron px-1 text-[10px] font-black text-ink">{cart.totalQuantity}</span>
           </Link>
+          {user ? <LogoutButton className="hidden text-xs font-bold text-rosewood xl:block" /> : null}
           <button aria-label="Menu" className="rounded-md p-2 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-saffron 2xl:hidden">
             <Menu className="h-5 w-5" />
           </button>

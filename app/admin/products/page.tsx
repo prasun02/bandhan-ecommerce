@@ -2,8 +2,10 @@ import { AdminCategoryForm, AdminProductForm } from "@/components/admin-catalog-
 import { AdminProductEditForm } from "@/components/admin-product-edit-form";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/utils";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function AdminProductsPage() {
+  await requireAdmin();
   const [dbProducts, dbCategories] = await Promise.all([
     prisma.product.findMany({ orderBy: { createdAt: "desc" }, include: { category: true }, take: 60 }),
     prisma.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } })

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CreditCard, MapPin, PackageCheck, Truck, Wallet } from "lucide-react";
 import { deliveryZones } from "@/data/catalog";
-import { getGuestKey, readStoredCart, type StoredCartLine, writeStoredCart } from "@/lib/cart-storage";
+import type { StoredCartLine } from "@/lib/cart-storage";
 import { formatMoney } from "@/lib/utils";
 
 type PaymentMethod = "cod" | "bkash" | "card";
@@ -17,7 +17,10 @@ export function CheckoutPageClient() {
   const [orderNumber, setOrderNumber] = useState("");
 
   useEffect(() => {
-    setLines(readStoredCart());
+    fetch("/api/cart", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((cart: { lines?: StoredCartLine[] }) => setLines(cart.lines ?? []))
+      .catch(() => setMessage("Could not load your cart."));
   }, []);
 
   const subtotal = useMemo(() => lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0), [lines]);
@@ -56,8 +59,6 @@ export function CheckoutPageClient() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        guestKey: getGuestKey(),
-        lines: lines.map((line) => ({ productId: line.productId, variantId: line.variantId, quantity: line.quantity })),
         checkout
       })
     });
@@ -67,7 +68,6 @@ export function CheckoutPageClient() {
       setMessage(result.error ?? "Order could not be created.");
       return;
     }
-    writeStoredCart([]);
     setLines([]);
     setOrderNumber(result.orderNumber ?? "");
   }

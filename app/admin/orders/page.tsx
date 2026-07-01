@@ -1,6 +1,8 @@
 import { AdminOrderStatusForm } from "@/components/admin-order-status-form";
+import { requireAdmin } from "@/lib/auth";
 
-export default function AdminOrdersPage() {
+export default async function AdminOrdersPage() {
+  await requireAdmin();
   return (
     <main className="container py-8">
       <h1 className="text-3xl font-black">Order management</h1>

@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Heart, Minus, Plus, ShoppingBag, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/data/catalog";
 import { formatMoney } from "@/lib/utils";
-import { getGuestKey, readStoredCart, writeStoredCart } from "@/lib/cart-storage";
 
 export function ProductPurchasePanel({ product }: { product: Product }) {
+  const router = useRouter();
   const colors = [...new Set(product.variants.map((variant) => variant.color).filter(Boolean))] as string[];
   const sizes = [...new Set(product.variants.map((variant) => variant.size).filter(Boolean))] as string[];
   const [color, setColor] = useState(colors[0] ?? "");
@@ -45,8 +46,7 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
     }
     setPending(true);
     try {
-      const guestKey = getGuestKey();
-      const payload = { guestKey, productId: product.id, variantId: selectedVariant?.id, quantity, mode: "increment" };
+      const payload = { productId: product.id, variantId: selectedVariant?.id, quantity, mode: "increment" };
       const response = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,23 +57,7 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
         setMessage(result.error ?? "Could not add to cart.");
         return;
       }
-      const cart = readStoredCart();
-      const existing = cart.find((line) => line.productId === product.id && line.variantId === selectedVariant?.id);
-      const nextQuantity = Math.min((existing?.quantity ?? 0) + quantity, availableStock);
-      const next = cart.filter((line) => !(line.productId === product.id && line.variantId === selectedVariant?.id));
-      next.push({
-        productId: product.id,
-        variantId: selectedVariant?.id,
-        quantity: nextQuantity,
-        name: product.name,
-        sku: selectedVariant?.sku ?? product.sku,
-        image: selectedVariant?.image ?? product.images[0],
-        size,
-        color,
-        unitPrice,
-        availableStock
-      });
-      writeStoredCart(next);
+      router.refresh();
       if (buyNow) {
         setMessage("Added. Redirecting to cart...");
         window.location.assign("/cart");

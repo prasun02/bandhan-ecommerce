@@ -1,15 +1,17 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { LoginForm } from "@/components/login-form";
 
 export default function LoginPage() {
   return (
     <main className="container py-10">
-      <form className="mx-auto grid max-w-md gap-4 rounded-md bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-black">Login</h1>
-        <input type="email" name="email" placeholder="Email" className="h-11 rounded-md border border-ink/15 px-3" />
-        <input type="password" name="password" placeholder="Password" className="h-11 rounded-md border border-ink/15 px-3" />
-        <button className="h-11 rounded-md bg-rosewood font-bold text-white">Login</button>
+      <Suspense fallback={<div className="mx-auto max-w-md rounded-md bg-white p-6">Loading…</div>}>
+        <LoginForm />
+      </Suspense>
+      <div className="mx-auto mt-4 flex max-w-md justify-between text-sm font-semibold text-rosewood">
         <Link href="/forgot-password" className="text-sm font-semibold text-rosewood">Forgot password?</Link>
-      </form>
+        <Link href="/register">Create account</Link>
+      </div>
     </main>
   );
 }

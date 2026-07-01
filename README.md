@@ -46,6 +46,7 @@ Copy `.env.example` to `.env` and fill all required values. Never commit real cr
 Required for local database/auth:
 
 - `DATABASE_URL`
+- `DIRECT_URL` (direct Supabase connection for Prisma migrations; `DATABASE_URL` should use the runtime pooler)
 - `NEXTAUTH_SECRET`
 - `NEXTAUTH_URL`
 - `APP_URL`
@@ -73,14 +74,18 @@ The seed script refuses to run unless `SEED_ADMIN_PASSWORD` and `SEED_CUSTOMER_P
 
 ## Admin Account
 
-Set these before seeding:
+Create or promote an administrator without hard-coded credentials:
 
 ```bash
-SEED_ADMIN_EMAIL="admin@example.com"
-SEED_ADMIN_PASSWORD="change-this-local-only"
+ADMIN_BOOTSTRAP_EMAIL="admin@example.com"
+ADMIN_BOOTSTRAP_NAME="Bandhan Administrator"
+ADMIN_BOOTSTRAP_PASSWORD="set-this-in-your-environment"
+npm run admin:create
 ```
 
-After `npm run prisma:seed`, log in using the configured email and password. In production, create admin accounts through a secure internal process and rotate seeded credentials.
+The command is idempotent, never prints the password, and preserves an existing account password when promoting that account. Remove the bootstrap variables after use.
+
+For administrator password recovery, set `ADMIN_RESET_EMAIL` and `ADMIN_NEW_PASSWORD`, run `npm run admin:reset-password`, then remove both variables.
 
 ## Payment Configuration
 

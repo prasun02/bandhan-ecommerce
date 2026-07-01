@@ -84,12 +84,15 @@ export async function createOrder(input: unknown, userId?: string) {
     const existing = await tx.order.findUnique({ where: { idempotencyKey: checkout.idempotencyKey } });
     if (existing) return existing;
 
-    const lines = request.lines?.length
-      ? request.lines
-      : (await tx.cart.findFirst({
+    const sourceCart = userId || request.guestKey
+      ? await tx.cart.findFirst({
           where: userId ? { userId } : { guestKey: request.guestKey },
           include: { items: true }
-        }))?.items.map((item) => ({ productId: item.productId, variantId: item.variantId ?? undefined, quantity: item.quantity })) ?? [];
+        })
+      : null;
+    const lines = sourceCart?.items.length
+      ? sourceCart.items.map((item) => ({ productId: item.productId, variantId: item.variantId ?? undefined, quantity: item.quantity }))
+      : request.lines ?? [];
     if (lines.length === 0) throw new Error("Cart is empty.");
 
     const totals = await calculateDbTotals(tx, lines, checkout);
@@ -179,6 +182,10 @@ export async function createOrder(input: unknown, userId?: string) {
       });
     }
 
+    if (sourceCart) {
+      await tx.cartItem.deleteMany({ where: { cartId: sourceCart.id } });
+    }
+
     return order;
   });
 }
@@ -228,6 +235,7 @@ export async function updateOrderStatus(input: unknown, actor: Actor) {
       include: { statusHistory: { orderBy: { createdAt: "asc" } } }
     });
     await tx.auditLog.create({ data: { userId: actor.id, action: "UPDATE_ORDER_STATUS", entity: "Order", entityId: order.id, metadata: { status: data.status, paymentStatus: data.paymentStatus } } });
+    await tx.adminAuditLog.create({ data: { adminUserId: actor.id, action: "UPDATE_ORDER_STATUS", entityType: "Order", entityId: order.id, description: `Updated ${order.orderNumber} to ${data.status}.`, metadata: { status: data.status, paymentStatus: data.paymentStatus } } });
     return order;
   });
 }

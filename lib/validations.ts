@@ -1,5 +1,40 @@
 import { z } from "zod";
 
+export const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
+export const strongPasswordSchema = z.string()
+  .min(8, "Password must be at least 8 characters.")
+  .regex(/[A-Z]/, "Password must include an uppercase letter.")
+  .regex(/[a-z]/, "Password must include a lowercase letter.")
+  .regex(/\d/, "Password must include a number.")
+  .regex(/[^A-Za-z0-9]/, "Password must include a symbol.");
+
+export const registrationSchema = z.object({
+  name: z.string().trim().min(2, "Enter your full name.").max(120),
+  email: z.string().trim().email("Enter a valid email address.").transform(normalizeEmail),
+  phone: z.string().trim().regex(/^(\+?88)?01[3-9]\d{8}$/, "Enter a valid Bangladesh phone number."),
+  password: strongPasswordSchema,
+  confirmPassword: z.string(),
+  termsAccepted: z.literal(true, { error: "You must accept the terms." })
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"]
+});
+
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, "Enter your current password."),
+  newPassword: strongPasswordSchema,
+  confirmPassword: z.string()
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"]
+});
+
+export const profileUpdateSchema = z.object({
+  name: z.string().trim().min(2, "Enter your full name.").max(120),
+  phone: z.string().trim().regex(/^(\+?88)?01[3-9]\d{8}$/, "Enter a valid Bangladesh phone number.")
+});
+
 export const checkoutSchema = z.object({
   fullName: z.string().min(2),
   phone: z.string().regex(/^(\+?88)?01[3-9]\d{8}$/),

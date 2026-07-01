@@ -1,4 +1,7 @@
-export default function AdminSettingsPage() {
+import { requireAdmin } from "@/lib/auth";
+
+export default async function AdminSettingsPage() {
+  await requireAdmin();
   return (
     <main className="container py-8">
       <h1 className="text-3xl font-black">Site settings</h1>

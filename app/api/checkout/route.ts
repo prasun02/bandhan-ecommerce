@@ -3,12 +3,17 @@ import { publicApiErrorMessage } from "@/lib/database-errors";
 import { getCurrentUser } from "@/lib/auth";
 import { createOrder } from "@/lib/services/order-db";
 import { getPaymentProvider } from "@/lib/payments";
+import { cookies } from "next/headers";
+import { CART_COOKIE } from "@/lib/services/cart";
+import { recordSiteEvent } from "@/lib/events";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const user = await getCurrentUser();
-    const order = await createOrder(body, user?.id);
+    const guestKey = user ? undefined : (await cookies()).get(CART_COOKIE)?.value;
+    const order = await createOrder({ ...body, guestKey }, user?.id);
+    await recordSiteEvent("ORDER_CREATED", { userId: user?.id, entityType: "Order", entityId: order.id });
     const provider = getPaymentProvider(body.checkout.paymentMethod);
     const payment = await provider.createPayment({
       orderNumber: order.orderNumber,

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { categoryCreateSchema, checkoutRequestSchema, productCreateSchema } from "@/lib/validations";
+import { categoryCreateSchema, checkoutRequestSchema, productCreateSchema, registrationSchema } from "@/lib/validations";
+import { safeCallback } from "@/lib/security";
 
 describe("admin and checkout validation", () => {
   it("accepts a category creation payload", () => {
@@ -46,5 +47,36 @@ describe("admin and checkout validation", () => {
       }
     });
     expect(request.checkout.paymentMethod).toBe("cod");
+  });
+});
+
+describe("registration and redirects", () => {
+  const valid = {
+    name: "Ayesha Rahman",
+    email: " AYESHA@example.com ",
+    phone: "01711111111",
+    password: "Strong#Pass1",
+    confirmPassword: "Strong#Pass1",
+    termsAccepted: true
+  };
+
+  it("accepts and normalizes a valid customer registration", () => {
+    expect(registrationSchema.parse(valid).email).toBe("ayesha@example.com");
+  });
+
+  it.each(["weak", "alllowercase1!", "ALLUPPERCASE1!", "NoNumber!", "NoSymbol1"])(
+    "rejects weak password %s",
+    (password) => {
+      expect(registrationSchema.safeParse({ ...valid, password, confirmPassword: password }).success).toBe(false);
+    }
+  );
+
+  it("rejects mismatched password confirmation", () => {
+    expect(registrationSchema.safeParse({ ...valid, confirmPassword: "Different#Pass1" }).success).toBe(false);
+  });
+
+  it("prevents open callback redirects", () => {
+    expect(safeCallback("//evil.example")).toBe("/account");
+    expect(safeCallback("/account/orders")).toBe("/account/orders");
   });
 });

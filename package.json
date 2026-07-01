@@ -15,7 +15,9 @@
     "import:demo-products": "tsx scripts/import-demo-products.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "admin:reset-password": "tsx scripts/reset-admin-password.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "2.11.2",

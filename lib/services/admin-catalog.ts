@@ -33,6 +33,9 @@ export async function createCategory(input: unknown, actor: Actor) {
     await tx.auditLog.create({
       data: { userId: actor.id, action: "CREATE_CATEGORY", entity: "Category", entityId: category.id, metadata: { slug } }
     });
+    await tx.adminAuditLog.create({
+      data: { adminUserId: actor.id, action: "CREATE_CATEGORY", entityType: "Category", entityId: category.id, description: `Created category ${category.name}.`, metadata: { slug } }
+    });
 
     return category;
   });
@@ -94,6 +97,9 @@ export async function createProduct(input: unknown, actor: Actor) {
     await tx.auditLog.create({
       data: { userId: actor.id, action: "CREATE_PRODUCT", entity: "Product", entityId: product.id, metadata: { sku: product.sku, slug } }
     });
+    await tx.adminAuditLog.create({
+      data: { adminUserId: actor.id, action: "CREATE_PRODUCT", entityType: "Product", entityId: product.id, description: `Created product ${product.name}.`, metadata: { sku: product.sku, slug } }
+    });
 
     return product;
   });
@@ -113,6 +119,9 @@ export async function updateProduct(input: unknown, actor: Actor) {
   });
   await prisma.auditLog.create({
     data: { userId: actor.id, action: "UPDATE_PRODUCT", entity: "Product", entityId: product.id, metadata: data }
+  });
+  await prisma.adminAuditLog.create({
+    data: { adminUserId: actor.id, action: "UPDATE_PRODUCT", entityType: "Product", entityId: product.id, description: `Updated product ${product.name}.`, metadata: data }
   });
   return product;
 }
