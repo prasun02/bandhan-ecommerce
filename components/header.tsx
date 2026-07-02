@@ -62,7 +62,12 @@ export async function Header() {
             <ShoppingBag className="h-5 w-5" />
             <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-saffron px-1 text-[10px] font-black text-ink">{cart.totalQuantity}</span>
           </Link>
-          {user ? <LogoutButton className="hidden text-xs font-bold text-rosewood xl:block" /> : null}
+          {user ? (
+            <LogoutButton
+              callbackUrl={user.role === "ADMIN" ? "/admin/login" : "/"}
+              className="hidden text-xs font-bold text-rosewood xl:block"
+            />
+          ) : null}
           <button aria-label="Menu" className="rounded-md p-2 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-saffron 2xl:hidden">
             <Menu className="h-5 w-5" />
           </button>

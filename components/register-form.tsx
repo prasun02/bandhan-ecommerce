@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 type FieldErrors = Record<string, string[] | undefined>;
 
 export function RegisterForm() {
-  const router = useRouter();
   const [errors, setErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
@@ -18,6 +16,7 @@ export function RegisterForm() {
     setMessage("");
     const response = await fetch("/api/auth/register", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: formData.get("name"),
@@ -35,7 +34,7 @@ export function RegisterForm() {
       setErrors(result.fields ?? {});
       return;
     }
-    router.push("/login?registered=1");
+    window.location.replace("/login?registered=1");
   }
 
   const field = (name: string) => errors[name]?.[0]

@@ -5,6 +5,13 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { safeCallback } from "@/lib/security";
 
+type SessionPayload = {
+  user?: {
+    active?: boolean;
+    role?: string;
+  };
+};
+
 export function LoginForm({ admin = false }: { admin?: boolean }) {
   const params = useSearchParams();
   const [message, setMessage] = useState("");
@@ -26,8 +33,47 @@ export function LoginForm({ admin = false }: { admin?: boolean }) {
       setMessage(admin ? "Invalid administrator credentials." : "Invalid email or password.");
       return;
     }
-    await fetch("/api/cart/merge", { method: "POST" }).catch(() => undefined);
-    window.location.assign(admin ? "/admin" : safeCallback(params.get("callbackUrl")));
+
+    // Do not navigate until the browser has committed the Set-Cookie header and
+    // the server can read the new session through the same cookie as the proxy.
+    const sessionResponse = await fetch("/api/auth/session", {
+      cache: "no-store",
+      credentials: "include"
+    });
+    const session = sessionResponse.ok
+      ? await sessionResponse.json() as SessionPayload
+      : null;
+
+    if (
+      !session?.user ||
+      session.user.active === false ||
+      (admin && session.user.role !== "ADMIN")
+    ) {
+      setPending(false);
+      setMessage("Login completed, but the session could not be verified. Please try again.");
+      return;
+    }
+
+    if (!admin) {
+      const mergeResponse = await fetch("/api/cart/merge", {
+        method: "POST",
+        cache: "no-store",
+        credentials: "include"
+      });
+      if (!mergeResponse.ok) {
+        setPending(false);
+        setMessage("You are signed in, but your cart could not be synchronized. Please try again.");
+        return;
+      }
+    }
+
+    const destination = admin
+      ? "/admin"
+      : safeCallback(params.get("callbackUrl"));
+
+    // A document navigation guarantees fresh Server Components, proxy checks,
+    // header account state, and cart totals without a manual refresh.
+    window.location.replace(destination);
   }
 
   return (

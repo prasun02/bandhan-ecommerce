@@ -8,6 +8,12 @@ import { prisma } from "@/lib/prisma";
 import { recordSiteEvent } from "@/lib/events";
 import { normalizeEmail } from "@/lib/validations";
 import { rateLimit } from "@/lib/rate-limit";
+import {
+  AUTH_COOKIE_SECURE,
+  AUTH_SESSION_COOKIE_NAME,
+  AUTH_SESSION_COOKIE_OPTIONS,
+  AUTH_SESSION_MAX_AGE
+} from "@/lib/auth-cookie";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -16,7 +22,20 @@ const credentialsSchema = z.object({
 });
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: AUTH_SESSION_MAX_AGE
+  },
+  jwt: {
+    maxAge: AUTH_SESSION_MAX_AGE
+  },
+  useSecureCookies: AUTH_COOKIE_SECURE,
+  cookies: {
+    sessionToken: {
+      name: AUTH_SESSION_COOKIE_NAME,
+      options: AUTH_SESSION_COOKIE_OPTIONS
+    }
+  },
   providers: [
     CredentialsProvider({
       name: "Email and password",
