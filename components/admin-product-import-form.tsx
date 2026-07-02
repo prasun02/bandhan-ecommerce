@@ -2,6 +2,15 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import {
+  PRODUCT_IMPORT_HEADERS,
+  PRODUCT_IMPORT_MAX_BYTES,
+  PRODUCT_IMPORT_PRICE_UNIT,
+  PRODUCT_IMPORT_REQUIRED_HEADERS,
+  PRODUCT_IMPORT_SAMPLE_ROW,
+  PRODUCT_STATUS_ALIASES,
+  PRODUCT_STATUS_VALUES
+} from "@/lib/product-import-config";
 
 type ImportIssue = {
   rowNumber: number;
@@ -42,7 +51,10 @@ type ImportSummary = {
   error?: string;
 };
 
-const maxBytes = 10 * 1024 * 1024;
+const maxMegabytes = PRODUCT_IMPORT_MAX_BYTES / 1024 / 1024;
+const sampleRow = PRODUCT_IMPORT_HEADERS
+  .map((header) => PRODUCT_IMPORT_SAMPLE_ROW[header])
+  .join(",");
 
 export function AdminProductImportForm() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -66,9 +78,9 @@ export function AdminProductImportForm() {
       setMessage("Only CSV and XLSX files are supported.");
       return;
     }
-    if (nextFile.size > maxBytes) {
+    if (nextFile.size > PRODUCT_IMPORT_MAX_BYTES) {
       setFile(null);
-      setMessage("The upload must be 10 MB or smaller.");
+      setMessage(`The upload must be ${maxMegabytes} MB or smaller.`);
       return;
     }
     setFile(nextFile);
@@ -130,7 +142,7 @@ export function AdminProductImportForm() {
         <div>
           <h2 className="text-xl font-black">CSV or XLSX product import</h2>
           <p className="mt-2 text-sm text-ink/60">
-            Drop one file here, or choose a file. Maximum size: 10 MB.
+            Drop one file here, or choose a file. Maximum size: {maxMegabytes} MB.
           </p>
           <button
             type="button"
@@ -156,11 +168,11 @@ export function AdminProductImportForm() {
 
       <div className="flex flex-wrap gap-3">
         <a
-          href="/templates/bandhan_demo_products_upload.csv"
+          href="/api/admin/products/import"
           download
           className="rounded-md border border-ink/20 bg-white px-4 py-2 text-sm font-bold"
         >
-          Download Product Import Template
+          Download CSV Template
         </a>
         <button
           type="button"
@@ -178,6 +190,41 @@ export function AdminProductImportForm() {
         >
           {state === "importing" ? "Importing in one transaction..." : "Import Products"}
         </button>
+      </div>
+
+      <div className="grid gap-3 rounded-lg bg-white p-5 text-sm shadow-sm">
+        <h2 className="text-lg font-black">Import format help</h2>
+        <div>
+          <p className="font-bold">Required headers</p>
+          <p className="mt-1 break-words text-ink/70">
+            {PRODUCT_IMPORT_REQUIRED_HEADERS.join(", ")}
+          </p>
+        </div>
+        <div>
+          <p className="font-bold">Accepted product statuses</p>
+          <p className="mt-1 text-ink/70">
+            Database values: {PRODUCT_STATUS_VALUES.join(", ")}.
+          </p>
+          {PRODUCT_STATUS_VALUES.map((status) => (
+            <p key={status} className="text-ink/70">
+              {status}: {PRODUCT_STATUS_ALIASES[status].join(", ")}
+            </p>
+          ))}
+        </div>
+        <p><strong>Price unit:</strong> {PRODUCT_IMPORT_PRICE_UNIT}; values are converted to poisha when saved.</p>
+        <p><strong>Maximum file size:</strong> {maxMegabytes} MB</p>
+        <div>
+          <p className="font-bold">Exact header row</p>
+          <code className="mt-1 block overflow-x-auto rounded bg-mist p-2 text-xs">
+            {PRODUCT_IMPORT_HEADERS.join(",")}
+          </code>
+        </div>
+        <div>
+          <p className="font-bold">Example row</p>
+          <code className="mt-1 block overflow-x-auto rounded bg-mist p-2 text-xs">
+            {sampleRow}
+          </code>
+        </div>
       </div>
 
       {message ? (

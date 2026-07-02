@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  normalizeProductStatus,
+  PRODUCT_STATUS_VALUES
+} from "@/lib/product-import-config";
 
 export const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -81,6 +85,11 @@ export const productVariantCreateSchema = z.object({
   imageUrl: z.string().url().optional().or(z.literal(""))
 });
 
+const productStatusSchema = z.preprocess(
+  (value) => normalizeProductStatus(value) ?? value,
+  z.enum(PRODUCT_STATUS_VALUES)
+);
+
 export const productCreateSchema = z.object({
   name: z.string().min(2).max(160),
   slug: z.string().min(2).max(180).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
@@ -100,7 +109,7 @@ export const productCreateSchema = z.object({
   featuredImageUrl: z.string().url().optional().or(z.literal("")),
   images: z.array(z.object({ url: z.string().url(), altText: z.string().optional() })).min(1),
   variants: z.array(productVariantCreateSchema).default([]),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).default("DRAFT"),
+  status: productStatusSchema.default("DRAFT"),
   tags: z.array(z.string().min(1)).default([])
 }).refine((data) => !data.salePrice || data.salePrice <= data.regularPrice, {
   message: "Sale price cannot be greater than regular price.",
@@ -112,7 +121,7 @@ export const productUpdateSchema = z.object({
   regularPrice: z.number().int().positive().optional(),
   salePrice: z.number().int().positive().nullable().optional(),
   stockQuantity: z.number().int().min(0).optional(),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional()
+  status: productStatusSchema.optional()
 });
 
 export const cartUpsertSchema = z.object({

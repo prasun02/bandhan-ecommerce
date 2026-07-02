@@ -1,6 +1,15 @@
 import { Buffer } from "node:buffer";
+import { PublicationStatus } from "@prisma/client";
 import { strToU8, zipSync } from "fflate";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  createProductImportTemplateCsv,
+  normalizeProductStatus,
+  PRODUCT_IMPORT_HEADERS,
+  PRODUCT_IMPORT_REQUIRED_HEADERS,
+  PRODUCT_IMPORT_SAMPLE_ROW,
+  PRODUCT_STATUS_VALUES
+} from "@/lib/product-import-config";
 
 vi.mock("server-only", () => ({}));
 
@@ -12,31 +21,7 @@ beforeAll(async () => {
   importer = await import("@/lib/services/admin-product-import");
 });
 
-const headers = [
-  "product_key",
-  "name",
-  "slug",
-  "category",
-  "subcategory",
-  "brand",
-  "gender",
-  "short_description",
-  "description",
-  "base_price_bdt",
-  "compare_at_price_bdt",
-  "featured",
-  "active",
-  "tags",
-  "image_1",
-  "image_2",
-  "variant_sku",
-  "color",
-  "size",
-  "variant_price_bdt",
-  "stock_qty",
-  "low_stock_threshold",
-  "weight_grams"
-];
+const headers = [...PRODUCT_IMPORT_HEADERS];
 
 function csvCell(value: string | number) {
   const text = String(value);
@@ -155,7 +140,46 @@ function databaseMock(options: {
   };
 }
 
+describe("shared product import configuration", () => {
+  it("matches the actual Prisma PublicationStatus enum", () => {
+    expect([...PRODUCT_STATUS_VALUES].sort()).toEqual(
+      Object.values(PublicationStatus).sort()
+    );
+  });
+
+  it.each([
+    ["ACTIVE", "PUBLISHED"],
+    ["active", "PUBLISHED"],
+    [" published ", "PUBLISHED"],
+    ["\uFEFFLIVE", "PUBLISHED"],
+    ["INACTIVE", "DRAFT"],
+    ["inactive", "DRAFT"],
+    ["draft", "DRAFT"],
+    ["ARCHIVED", "ARCHIVED"],
+    [" archived ", "ARCHIVED"]
+  ])("normalizes status alias %s to %s", (input, expected) => {
+    expect(normalizeProductStatus(input)).toBe(expected);
+  });
+
+  it("generates template headers from the validator's shared constant", () => {
+    const [header, sample] = createProductImportTemplateCsv()
+      .replace(/^\uFEFF/, "")
+      .trim()
+      .split(/\r?\n/);
+    expect(header?.split(",")).toEqual(PRODUCT_IMPORT_HEADERS);
+    expect(sample).toContain(",ACTIVE,");
+  });
+});
+
 describe("administrator product upload parsing", () => {
+  it("rejects a file missing a required template header", () => {
+    const incompleteHeaders = headers.filter((header) => header !== "active");
+    const parsed = importer.parseProductImportCsv(incompleteHeaders.join(","));
+    expect(parsed.errors.some((error) =>
+      error.field === "active" && error.message.includes("missing")
+    )).toBe(true);
+  });
+
   it("parses quoted CSV values, UTF-8 BOM, and groups variants by product key", () => {
     const csv = `\uFEFF${validCsv()}`;
     const parsed = importer.parseProductImportCsv(csv);
@@ -192,6 +216,80 @@ describe("administrator product upload parsing", () => {
       expect(parsed.errors).toEqual([]);
       expect(parsed.rows[0]?.featured).toBe(expected);
     }
+  });
+
+  it.each([
+    ["ACTIVE", "PUBLISHED"],
+    [" active ", "PUBLISHED"],
+    ["PUBLISHED", "PUBLISHED"],
+    ["published", "PUBLISHED"],
+    ["INACTIVE", "DRAFT"],
+    ["draft", "DRAFT"],
+    ["ARCHIVED", "ARCHIVED"],
+    ["\uFEFFACTIVE", "PUBLISHED"]
+  ])("accepts active/status value %s as %s", (active, expected) => {
+    const parsed = importer.parseProductImportCsv(
+      `${headers.join(",")}\n${row({ active })}`
+    );
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.rows[0]?.status).toBe(expected);
+  });
+
+  it("accepts a complete 22-row upload using the ACTIVE alias", () => {
+    const rows = Array.from({ length: 22 }, (_, index) => row({
+      active: "ACTIVE",
+      variant_sku: `BDN-MTS-VAR-${String(index + 1).padStart(2, "0")}`,
+      size: `Size ${index + 1}`
+    }));
+    const parsed = importer.parseProductImportCsv(
+      [headers.join(","), ...rows].join("\n")
+    );
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.rows).toHaveLength(22);
+    expect(parsed.rows.every((item) => item.status === "PUBLISHED")).toBe(true);
+  });
+
+  it("reports actual accepted enum values for an invalid status", () => {
+    const parsed = importer.parseProductImportCsv(
+      `${headers.join(",")}\n${row({ active: "UNKNOWN" })}`
+    );
+    const statusError = parsed.errors.find((error) => error.field === "active");
+    expect(statusError?.message).toContain("PUBLISHED, DRAFT, ARCHIVED");
+    expect(statusError?.message).toContain("ACTIVE");
+    expect(statusError?.message).toContain("INACTIVE");
+  });
+
+  it("accepts empty optional fields", () => {
+    const parsed = importer.parseProductImportCsv(
+      `${headers.join(",")}\n${row({
+        subcategory: "",
+        brand: "",
+        gender: "",
+        compare_at_price_bdt: "",
+        image_2: "",
+        color: "",
+        size: "",
+        weight_grams: ""
+      })}`
+    );
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.rows[0]?.compareAtPrice).toBeNull();
+    expect(parsed.rows[0]?.weightGrams).toBeNull();
+  });
+
+  it("allows optional columns to be omitted", () => {
+    const optionalColumnsOmitted = [...PRODUCT_IMPORT_REQUIRED_HEADERS];
+    const data = optionalColumnsOmitted
+      .map((header) => csvCell(PRODUCT_IMPORT_SAMPLE_ROW[header]))
+      .join(",");
+    const parsed = importer.parseProductImportCsv(
+      `${optionalColumnsOmitted.join(",")}\n${data}`
+    );
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.rows[0]).toMatchObject({
+      productKey: "MEN-TSHIRT-001",
+      status: "PUBLISHED"
+    });
   });
 
   it("reports required fields and duplicate SKUs", () => {
@@ -299,6 +397,7 @@ describe("administrator product import planning", () => {
 
   it("uses one transaction and creates an audit record", async () => {
     const auditCreate = vi.fn().mockResolvedValue({});
+    const productCreate = vi.fn().mockResolvedValue({ id: "p1" });
     const tx = {
       category: {
         findUnique: vi.fn().mockResolvedValue(null),
@@ -308,7 +407,7 @@ describe("administrator product import planning", () => {
         upsert: vi.fn().mockResolvedValue({ id: "brand-1" })
       },
       product: {
-        create: vi.fn().mockResolvedValue({ id: "p1" }),
+        create: productCreate,
         update: vi.fn().mockResolvedValue({ id: "p1" })
       },
       productImage: {
@@ -341,6 +440,9 @@ describe("administrator product import planning", () => {
       categoriesCreated: 2
     });
     expect(auditCreate).toHaveBeenCalledTimes(1);
+    expect(productCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ status: "PUBLISHED" })
+    }));
   });
 
   it("updates matching product and variant SKUs on a second import", async () => {

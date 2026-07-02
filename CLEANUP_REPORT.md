@@ -33,11 +33,11 @@ Git state was `main...origin/main` with a pre-existing local modification to
 | `prisma/schema.prisma` | Database configuration | Canonical schema. Retain. |
 | `prisma/migrations/` | Database configuration | Contains the initial schema and additive follow-up migrations. Retain. |
 | `prisma.config.ts`, `lib/prisma.ts` | Database configuration | Active Prisma 7 CLI and runtime configuration. Retain and correct as needed. |
-| `data/bandhan_demo_products_full_details.csv`, `data/product-import-template.csv`, `data/catalog.ts` | Product data | Required by the catalog/import workflows. Retain. |
+| `data/catalog.ts` | Product data | Canonical catalog data retained for seed maintenance. |
 | `public/images/` | Product data | Product, category, and storefront assets referenced by source/CSV data. Retain. |
-| `scripts/import-demo-products.ts`, `lib/services/product-import.ts` | Product data | Active idempotent catalog import path. Retain and verify. |
+| `lib/services/admin-product-import.ts` | Product data | Canonical protected CSV/XLSX product import path. |
 | `scripts/create-admin.ts`, `scripts/reset-admin-password.ts` | Required | The two explicit administrator maintenance commands. Retain and harden. |
-| `scripts/smoke-demo-flow.ts`, `scripts/verify-demo-products.ts` | Unknown and requires manual review | Useful database-dependent verification helpers, but not automatic deployment steps. Retain. |
+| `scripts/smoke-demo-flow.ts` | Unknown and requires manual review | Useful database-dependent verification helper, but not an automatic deployment step. Retain. |
 | `prisma/seed.ts` | Outdated | Creates demo users and reviews, which is unsafe for a new production database. Replace with catalog-only behavior; do not delete the path because Prisma references it. |
 | `docs/deployment-guide.md`, `docs/setup-guide.md`, `docs/admin-user-setup-guide.md`, `README.md` | Outdated | Contain old seed/admin instructions. Retain and update or supersede with `NEW_DEPLOYMENT_GUIDE.md`. |
 | `.env.example` | Deployment configuration | Tracked template. Retain, remove obsolete demo-account variables, and keep placeholders non-secret. |
@@ -78,4 +78,3 @@ Git state was `main...origin/main` with a pre-existing local modification to
 - No migration is scheduled for deletion. A real empty PostgreSQL database is
   still required to prove `prisma migrate deploy` end to end; static schema and
   SQL inspection alone cannot substitute for that database-dependent test.
-

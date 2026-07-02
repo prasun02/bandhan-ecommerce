@@ -8,6 +8,21 @@ import {
   ProductImportValidationError,
   recordFailedProductImport
 } from "@/lib/services/admin-product-import";
+import { createProductImportTemplateCsv } from "@/lib/product-import-config";
+
+export async function GET() {
+  const admin = await requireAdmin().catch(() => null);
+  if (!admin) {
+    return NextResponse.json({ error: "Administrator authorization required." }, { status: 403 });
+  }
+  return new NextResponse(createProductImportTemplateCsv(), {
+    headers: {
+      "Cache-Control": "private, no-store",
+      "Content-Disposition": 'attachment; filename="bandhan_demo_products_upload.csv"',
+      "Content-Type": "text/csv; charset=utf-8"
+    }
+  });
+}
 
 export async function POST(request: Request) {
   const admin = await requireAdmin().catch(() => null);

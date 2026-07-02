@@ -4,6 +4,6 @@
 - `npm run typecheck` checks TypeScript strict mode.
 - `npm run test` runs Vitest.
 - `npm run build` verifies production output.
-- `data/product-import-template.csv` shows the expected CSV product import columns.
+- The protected `/admin/products/import` page provides the canonical CSV template.
 
 Keep business logic in `lib/services` and keep UI components focused on rendering.

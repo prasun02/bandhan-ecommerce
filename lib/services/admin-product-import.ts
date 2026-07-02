@@ -4,43 +4,26 @@ import path from "node:path";
 import { Buffer } from "node:buffer";
 import { parse } from "csv-parse/sync";
 import readExcelFile from "read-excel-file/node";
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient, PublicationStatus } from "@prisma/client";
+import {
+  normalizeImportBoolean,
+  normalizeProductStatus,
+  PRODUCT_IMPORT_HEADERS,
+  PRODUCT_IMPORT_MAX_BYTES,
+  PRODUCT_IMPORT_MAX_ROWS,
+  PRODUCT_IMPORT_REQUIRED_HEADERS,
+  PRODUCT_STATUS_ALIASES,
+  PRODUCT_STATUS_VALUES
+} from "@/lib/product-import-config";
 
-export const productImportHeaders = [
-  "product_key",
-  "name",
-  "slug",
-  "category",
-  "subcategory",
-  "brand",
-  "gender",
-  "short_description",
-  "description",
-  "base_price_bdt",
-  "compare_at_price_bdt",
-  "featured",
-  "active",
-  "tags",
-  "image_1",
-  "image_2",
-  "variant_sku",
-  "color",
-  "size",
-  "variant_price_bdt",
-  "stock_qty",
-  "low_stock_threshold",
-  "weight_grams"
-] as const;
-
-export const PRODUCT_IMPORT_MAX_BYTES = 10 * 1024 * 1024;
-export const PRODUCT_IMPORT_MAX_ROWS = 5_000;
+export { PRODUCT_IMPORT_HEADERS as productImportHeaders };
 
 const allowedRemoteImageHosts = new Set([
   "images.unsplash.com",
   "placehold.co"
 ]);
 
-type Header = (typeof productImportHeaders)[number];
+type Header = (typeof PRODUCT_IMPORT_HEADERS)[number];
 type RawRow = Record<Header, string>;
 
 export type ProductImportIssue = {
@@ -66,7 +49,7 @@ export type ProductImportRow = {
   basePrice: number;
   compareAtPrice: number | null;
   featured: boolean;
-  active: boolean;
+  status: PublicationStatus;
   tags: string[];
   image1: string | null;
   image2: string | null;
@@ -186,16 +169,15 @@ function containsFormulaPrefix(value: string): boolean {
   return /^[=+\-@]/.test(value);
 }
 
-function parseBoolean(
+function parseFeatured(
   value: string,
   field: string,
   rowNumber: number,
   errors: ProductImportIssue[],
   context: { productKey?: string; sku?: string }
 ): boolean | null {
-  const normalized = value.toLowerCase();
-  if (["true", "1", "yes"].includes(normalized)) return true;
-  if (["false", "0", "no"].includes(normalized)) return false;
+  const normalized = normalizeImportBoolean(value);
+  if (normalized !== null) return normalized;
   issue(errors, rowNumber, field, "Use TRUE/FALSE, 1/0, or yes/no.", {
     ...context,
     value
@@ -284,9 +266,11 @@ function validateHeaders(headers: string[], errors: ProductImportIssue[]) {
   const normalized = headers.map((header, index) =>
     normalizeText(index === 0 ? header.replace(/^\uFEFF/, "") : header).toLowerCase()
   );
-  const missing = productImportHeaders.filter((header) => !normalized.includes(header));
+  const missing = PRODUCT_IMPORT_REQUIRED_HEADERS.filter(
+    (header) => !normalized.includes(header)
+  );
   const unsupported = normalized.filter(
-    (header) => header && !productImportHeaders.includes(header as Header)
+    (header) => header && !PRODUCT_IMPORT_HEADERS.includes(header as Header)
   );
   for (const header of missing) {
     issue(errors, 1, header, `Required column ${header} is missing.`);
@@ -313,7 +297,7 @@ function parseRawRows(headers: string[], dataRows: string[][]): ParsedProductImp
     const rowNumber = index + 2;
     if (values.every((value) => !normalizeText(value))) continue;
     const raw = Object.fromEntries(
-      productImportHeaders.map((header) => {
+      PRODUCT_IMPORT_HEADERS.map((header) => {
         const columnIndex = normalizedHeaders.indexOf(header);
         return [header, normalizeText(values[columnIndex] ?? "")];
       })
@@ -324,19 +308,7 @@ function parseRawRows(headers: string[], dataRows: string[][]): ParsedProductImp
       sku: raw.variant_sku || undefined
     };
 
-    for (const field of [
-      "product_key",
-      "name",
-      "slug",
-      "category",
-      "base_price_bdt",
-      "featured",
-      "active",
-      "variant_sku",
-      "variant_price_bdt",
-      "stock_qty",
-      "low_stock_threshold"
-    ] satisfies Header[]) {
+    for (const field of PRODUCT_IMPORT_REQUIRED_HEADERS) {
       if (!raw[field]) {
         issue(rowErrors, rowNumber, field, "This field is required.", context);
       }
@@ -401,8 +373,18 @@ function parseRawRows(headers: string[], dataRows: string[][]): ParsedProductImp
       rowErrors,
       { optional: true }
     );
-    const featured = parseBoolean(raw.featured, "featured", rowNumber, rowErrors, context);
-    const active = parseBoolean(raw.active, "active", rowNumber, rowErrors, context);
+    const featured = parseFeatured(raw.featured, "featured", rowNumber, rowErrors, context);
+    const status = normalizeProductStatus(raw.active);
+    if (status === null) {
+      const aliases = Array.from(new Set(Object.values(PRODUCT_STATUS_ALIASES).flat()));
+      issue(
+        rowErrors,
+        rowNumber,
+        "active",
+        `Invalid product status "${safeIssueValue(raw.active)}". Accepted database values: ${PRODUCT_STATUS_VALUES.join(", ")}. Supported aliases: ${aliases.join(", ")}.`,
+        { ...context, value: raw.active }
+      );
+    }
 
     if (
       compareAtPrice !== null &&
@@ -446,7 +428,7 @@ function parseRawRows(headers: string[], dataRows: string[][]): ParsedProductImp
       stockQuantity === null ||
       lowStockThreshold === null ||
       featured === null ||
-      active === null
+      status === null
     ) {
       errors.push(...rowErrors);
       continue;
@@ -467,7 +449,7 @@ function parseRawRows(headers: string[], dataRows: string[][]): ParsedProductImp
       basePrice,
       compareAtPrice,
       featured,
-      active,
+      status,
       tags: normalizeTags(raw.tags, gender),
       image1: raw.image_1 || null,
       image2: raw.image_2 || null,
@@ -503,7 +485,7 @@ function comparableProductData(row: ProductImportRow) {
     basePrice: row.basePrice,
     compareAtPrice: row.compareAtPrice,
     featured: row.featured,
-    active: row.active,
+    status: row.status,
     tags: [...row.tags].sort(),
     image1: row.image1,
     image2: row.image2,
@@ -877,7 +859,7 @@ export async function importProducts(
         weightGrams: group.product.weightGrams,
         tags: group.product.tags,
         featured: group.product.featured,
-        status: group.product.active ? "PUBLISHED" as const : "DRAFT" as const,
+        status: group.product.status,
         lowStockLimit: group.product.lowStockThreshold,
         deletedAt: null
       };

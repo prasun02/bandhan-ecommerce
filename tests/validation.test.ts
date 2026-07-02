@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoryCreateSchema, checkoutRequestSchema, productCreateSchema, registrationSchema } from "@/lib/validations";
+import { categoryCreateSchema, checkoutRequestSchema, productCreateSchema, productUpdateSchema, registrationSchema } from "@/lib/validations";
 import { safeCallback } from "@/lib/security";
 
 describe("admin and checkout validation", () => {
@@ -25,6 +25,17 @@ describe("admin and checkout validation", () => {
         tags: []
       })
     ).toThrow();
+  });
+
+  it("uses shared status aliases for administrator product updates", () => {
+    expect(productUpdateSchema.parse({
+      productId: "prod_1",
+      status: " active "
+    }).status).toBe("PUBLISHED");
+    expect(productUpdateSchema.parse({
+      productId: "prod_1",
+      status: "INACTIVE"
+    }).status).toBe("DRAFT");
   });
 
   it("requires confirmed checkout details and cart lines", () => {

@@ -1,4 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { PRODUCT_IMPORT_HEADERS } from "@/lib/product-import-config";
 
 const mocks = vi.hoisted(() => ({
   requireAdmin: vi.fn(),
@@ -60,6 +61,20 @@ describe("administrator product import authorization", () => {
     const page = await pageModule.default();
     expect(page.type).toBe("main");
     expect(mocks.requireAdmin).toHaveBeenCalledTimes(1);
+  });
+
+  it("serves the canonical CSV template to an administrator", async () => {
+    mocks.requireAdmin.mockResolvedValue({
+      id: "admin-1",
+      role: "ADMIN",
+      isActive: true
+    });
+    const response = await routeModule.GET();
+    const [header] = (await response.text())
+      .replace(/^\uFEFF/, "")
+      .split(/\r?\n/);
+    expect(response.status).toBe(200);
+    expect(header?.split(",")).toEqual(PRODUCT_IMPORT_HEADERS);
   });
 
   it("does not render the page for a normal customer", async () => {
