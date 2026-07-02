@@ -12,6 +12,13 @@ type SessionPayload = {
   };
 };
 
+export function replaceWithAuthenticatedPage(
+  destination: string,
+  replace: (url: string) => void = (url) => window.location.replace(url)
+) {
+  replace(destination);
+}
+
 export function LoginForm({ admin = false }: { admin?: boolean }) {
   const params = useSearchParams();
   const [message, setMessage] = useState("");
@@ -73,7 +80,7 @@ export function LoginForm({ admin = false }: { admin?: boolean }) {
 
     // A document navigation guarantees fresh Server Components, proxy checks,
     // header account state, and cart totals without a manual refresh.
-    window.location.replace(destination);
+    replaceWithAuthenticatedPage(destination);
   }
 
   return (

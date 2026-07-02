@@ -3,6 +3,13 @@
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 
+export function replaceWithAnonymousPage(
+  destination: string,
+  replace: (url: string) => void = (url) => window.location.replace(url)
+) {
+  replace(destination);
+}
+
 export function LogoutButton({
   callbackUrl = "/",
   className = ""
@@ -20,7 +27,7 @@ export function LogoutButton({
       // Wait for NextAuth's expired Set-Cookie response before loading an
       // anonymous server-rendered layout.
       await signOut({ callbackUrl, redirect: false });
-      window.location.replace(callbackUrl);
+      replaceWithAnonymousPage(callbackUrl);
     } catch {
       setPending(false);
     }

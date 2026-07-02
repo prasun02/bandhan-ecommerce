@@ -1,5 +1,3 @@
-import "server-only";
-
 import path from "node:path";
 import { Buffer } from "node:buffer";
 import { parse } from "csv-parse/sync";
@@ -120,6 +118,7 @@ type ProductImportPlan = {
   parsed: ParsedProductImport;
   groups: ProductGroup[];
   existingProductsBySlug: Map<string, ExistingProduct>;
+  existingProductsByKey: Map<string, ExistingProduct>;
   existingVariantsBySku: Map<string, ExistingVariant>;
   dryRun: ProductImportDryRun;
 };
@@ -676,20 +675,21 @@ export async function prepareProductImport(
   for (const group of groups) {
     const slugMatch = existingProductsBySlug.get(group.product.slug);
     const keyMatch = existingProductsBySku.get(group.productKey.toLowerCase());
-    if (keyMatch && keyMatch.slug !== group.product.slug) {
+    if (slugMatch && keyMatch && slugMatch.id !== keyMatch.id) {
       issue(
         errors,
         group.product.rowNumber,
-        "product_key",
-        `Product key ${group.productKey} is already the SKU of a different product.`,
+        "slug",
+        `Product key ${group.productKey} and slug ${group.product.slug} belong to different products.`,
         { productKey: group.productKey }
       );
     }
+    const matchedProduct = keyMatch ?? slugMatch;
     for (const variant of group.variants) {
       const existingVariant = existingVariantsBySku.get(variant.variantSku.toLowerCase());
       if (
         existingVariant &&
-        (!slugMatch || existingVariant.productId !== slugMatch.id)
+        (!matchedProduct || existingVariant.productId !== matchedProduct.id)
       ) {
         issue(
           errors,
@@ -729,7 +729,10 @@ export async function prepareProductImport(
 
   const invalidRows = new Set(errors.filter((error) => error.rowNumber > 1).map((error) => error.rowNumber));
   const existingCategorySlugs = new Set(existingCategories.map((category) => category.slug));
-  const newProducts = groups.filter((group) => !existingProductsBySlug.has(group.product.slug)).length;
+  const newProducts = groups.filter((group) =>
+    !existingProductsBySku.has(group.productKey.toLowerCase()) &&
+    !existingProductsBySlug.has(group.product.slug)
+  ).length;
   const existingProductsToUpdate = groups.length - newProducts;
   const newVariants = parsed.rows.filter(
     (row) => !existingVariantsBySku.has(row.variantSku.toLowerCase())
@@ -755,6 +758,7 @@ export async function prepareProductImport(
     parsed,
     groups,
     existingProductsBySlug,
+    existingProductsByKey: existingProductsBySku,
     existingVariantsBySku,
     dryRun
   };
@@ -820,9 +824,12 @@ function productPrices(product: ProductImportRow) {
 export async function importProducts(
   prisma: PrismaClient,
   options: {
-    adminUserId: string;
+    adminUserId: string | null;
     fileName: string;
     parsed: ParsedProductImport;
+    auditAction?: string;
+    auditEntityType?: string;
+    auditDescription?: string;
   }
 ): Promise<ProductImportSummary> {
   const startedAt = Date.now();
@@ -846,9 +853,13 @@ export async function importProducts(
       result.categoriesCreated += category.created;
       const brandId = await ensureBrand(tx, group.product.brand);
       const prices = productPrices(group.product);
-      const existingProduct = plan.existingProductsBySlug.get(group.product.slug);
+      const existingProduct =
+        plan.existingProductsByKey.get(group.productKey.toLowerCase()) ??
+        plan.existingProductsBySlug.get(group.product.slug);
       const productData = {
         name: group.product.name,
+        slug: group.product.slug,
+        sku: group.productKey,
         shortDescription: group.product.shortDescription,
         description: group.product.description,
         categoryId: category.id,
@@ -871,8 +882,6 @@ export async function importProducts(
         : await tx.product.create({
             data: {
               ...productData,
-              slug: group.product.slug,
-              sku: group.productKey,
               stockQuantity: group.variants.reduce((sum, row) => sum + row.stockQuantity, 0)
             }
           });
@@ -966,9 +975,11 @@ export async function importProducts(
     await tx.adminAuditLog.create({
       data: {
         adminUserId: options.adminUserId,
-        action: "PRODUCT_IMPORT_COMPLETED",
-        entityType: "ProductImport",
-        description: `Product import completed for ${path.basename(options.fileName)}.`,
+        action: options.auditAction ?? "PRODUCT_IMPORT_COMPLETED",
+        entityType: options.auditEntityType ?? "ProductImport",
+        description:
+          options.auditDescription ??
+          `Product import completed for ${path.basename(options.fileName)}.`,
         metadata: {
           status: "SUCCESS",
           fileName: path.basename(options.fileName),
@@ -984,6 +995,9 @@ export async function importProducts(
       }
     });
     return result;
+  }, {
+    maxWait: 10_000,
+    timeout: 60_000
   });
 
   return summary;

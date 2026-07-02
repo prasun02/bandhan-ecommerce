@@ -2,12 +2,14 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
 import { AUTH_SESSION_COOKIE_NAME } from "@/lib/auth-cookie";
 
+export const PROXY_AUTH_COOKIE_NAME = AUTH_SESSION_COOKIE_NAME;
+
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
-    cookieName: AUTH_SESSION_COOKIE_NAME
+    cookieName: PROXY_AUTH_COOKIE_NAME
   });
 
   if (path.startsWith("/admin") && path !== "/admin/login") {
