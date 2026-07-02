@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Men's Panjabi front demo placeholder</title>
+  <rect width="800" height="1000" fill="#fef3c7"/>
+  <path d="M285 175 350 135h100l65 40 100 120-90 75-40-50 45 455H270l45-455-40 50-90-75z" fill="#92400e"/>
+  <path d="M400 155v245M360 145l40 75 40-75" stroke="#fde68a" stroke-width="12" fill="none"/>
+  <text x="400" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#78350f">MEN'S PANJABI</text>
+  <text x="400" y="910" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#57534e">Front view · Demo image</text>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Kids girls dress detail demo placeholder</title>
+  <rect width="800" height="1000" fill="#fae8ff"/>
+  <rect x="160" y="150" width="480" height="590" rx="45" fill="#a21caf"/>
+  <path d="M210 300h380M210 500h380" stroke="#e879f9" stroke-width="28"/>
+  <path d="m300 385 100-70 100 70-100 70z" fill="#fef9c3"/>
+  <circle cx="275" cy="600" r="30" fill="#fde047"/><circle cx="400" cy="600" r="30" fill="#fde047"/><circle cx="525" cy="600" r="30" fill="#fde047"/>
+  <text x="400" y="820" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#86198f">DRESS DETAIL</text>
+  <text x="400" y="875" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#61425f">Trim and pattern · Demo image</text>
+</svg>

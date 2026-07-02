@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Women's Handbag front demo placeholder</title>
+  <rect width="800" height="1000" fill="#ffe4e6"/>
+  <path d="M245 350h310l65 365H180z" fill="#9f1239"/>
+  <path d="M310 360q0-170 90-170t90 170" fill="none" stroke="#881337" stroke-width="32"/>
+  <rect x="365" y="470" width="70" height="55" rx="12" fill="#fda4af"/>
+  <text x="400" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#881337">WOMEN'S HANDBAG</text>
+  <text x="400" y="910" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#6b2b3a">Front view · Demo image</text>
+</svg>

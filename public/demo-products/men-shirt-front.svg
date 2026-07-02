@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Men's Shirt front demo placeholder</title>
+  <rect width="800" height="1000" fill="#ecfeff"/>
+  <path d="M260 180 350 145h100l90 35 95 120-100 75-35-50v430H300V325l-35 50-100-75z" fill="#0f766e"/>
+  <path d="M400 190v565M355 150l45 80 45-80" stroke="#ccfbf1" stroke-width="10" fill="none"/>
+  <circle cx="400" cy="315" r="8" fill="#ccfbf1"/><circle cx="400" cy="390" r="8" fill="#ccfbf1"/><circle cx="400" cy="465" r="8" fill="#ccfbf1"/>
+  <text x="400" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#134e4a">MEN'S SHIRT</text>
+  <text x="400" y="910" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#475569">Front view · Demo image</text>
+</svg>

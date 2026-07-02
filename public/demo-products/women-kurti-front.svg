@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Women's Kurti front demo placeholder</title>
+  <rect width="800" height="1000" fill="#ede9fe"/>
+  <path d="M290 190 350 145h100l60 45 100 115-95 80-40-55 55 430H270l55-430-40 55-95-80z" fill="#6d28d9"/>
+  <path d="M350 155q50 95 100 0M400 230v330" stroke="#ddd6fe" stroke-width="14" fill="none"/>
+  <text x="400" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#4c1d95">WOMEN'S KURTI</text>
+  <text x="400" y="910" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#4c3d70">Front view · Demo image</text>
+</svg>

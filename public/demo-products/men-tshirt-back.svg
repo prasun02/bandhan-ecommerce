@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Men's T-Shirt back demo placeholder</title>
+  <rect width="800" height="1000" fill="#bfdbfe"/>
+  <path d="M250 210 340 160h120l90 50 105 95-90 105-55-50v390H290V360l-55 50-90-105z" fill="#1e3a8a"/>
+  <path d="M340 160q60 70 120 0" fill="none" stroke="#93c5fd" stroke-width="14"/>
+  <text x="400" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#172554">MEN'S T-SHIRT</text>
+  <text x="400" y="910" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#334155">Back view · Demo image</text>
+</svg>

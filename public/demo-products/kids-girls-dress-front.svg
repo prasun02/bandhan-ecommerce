@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Kids girls dress front demo placeholder</title>
+  <rect width="800" height="1000" fill="#fef9c3"/>
+  <circle cx="400" cy="185" r="48" fill="#a21caf"/>
+  <path d="M325 245h150l45 165 115 350H165l115-350z" fill="#c026d3"/>
+  <path d="M275 420h250M235 555h330" stroke="#fae8ff" stroke-width="24"/>
+  <circle cx="335" cy="500" r="18" fill="#fde047"/><circle cx="465" cy="500" r="18" fill="#fde047"/>
+  <text x="400" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#86198f">GIRLS' DRESS</text>
+  <text x="400" y="910" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#61425f">Front view · Demo image</text>
+</svg>

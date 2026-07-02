@@ -28,6 +28,7 @@
     "@types/pg": "^8.20.0",
     "bcryptjs": "3.0.3",
     "clsx": "2.1.1",
+    "csv-parse": "^7.0.0",
     "dotenv": "^17.4.2",
     "lucide-react": "1.21.0",
     "next": "16.2.9",
@@ -36,6 +37,7 @@
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-hook-form": "7.80.0",
+    "read-excel-file": "^9.2.0",
     "server-only": "^0.0.1",
     "tailwind-merge": "3.6.0",
     "zod": "4.4.3"
@@ -51,6 +53,7 @@
     "autoprefixer": "10.5.0",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.9",
+    "fflate": "^0.8.3",
     "jsdom": "29.1.1",
     "postcss": "8.5.15",
     "prisma": "7.8.0",

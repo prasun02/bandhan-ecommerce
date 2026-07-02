@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Belt detail demo placeholder</title>
+  <rect width="800" height="1000" fill="#d6d3d1"/>
+  <rect x="125" y="240" width="550" height="430" rx="45" fill="#44403c"/>
+  <rect x="230" y="320" width="340" height="245" rx="35" fill="none" stroke="#d97706" stroke-width="38"/>
+  <path d="M300 445h200" stroke="#fef3c7" stroke-width="22"/>
+  <text x="400" y="790" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#292524">BELT DETAIL</text>
+  <text x="400" y="845" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#57534e">Buckle and finish · Demo image</text>
+</svg>

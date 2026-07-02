@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Men's Panjabi detail demo placeholder</title>
+  <rect width="800" height="1000" fill="#fde68a"/>
+  <rect x="180" y="130" width="440" height="610" rx="40" fill="#a16207"/>
+  <path d="M400 150v430M315 220q85 90 170 0M300 610h200" stroke="#fef3c7" stroke-width="20" fill="none"/>
+  <circle cx="400" cy="340" r="10" fill="#fef3c7"/><circle cx="400" cy="410" r="10" fill="#fef3c7"/>
+  <text x="400" y="820" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#78350f">PANJABI DETAIL</text>
+  <text x="400" y="875" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#57534e">Placket and embroidery · Demo image</text>
+</svg>

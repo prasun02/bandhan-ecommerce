@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Men's Shirt detail demo placeholder</title>
+  <rect width="800" height="1000" fill="#ccfbf1"/>
+  <rect x="155" y="150" width="490" height="570" rx="35" fill="#115e59"/>
+  <path d="M260 230h280M260 315h280M260 400h280M260 485h280M260 570h280" stroke="#5eead4" stroke-width="18"/>
+  <rect x="315" y="245" width="170" height="210" rx="12" fill="#0f766e" stroke="#99f6e4" stroke-width="8"/>
+  <text x="400" y="820" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#134e4a">SHIRT DETAIL</text>
+  <text x="400" y="875" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#475569">Fabric and pocket · Demo image</text>
+</svg>

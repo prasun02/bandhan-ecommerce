@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Women's Handbag detail demo placeholder</title>
+  <rect width="800" height="1000" fill="#fecdd3"/>
+  <rect x="145" y="180" width="510" height="520" rx="45" fill="#be123c"/>
+  <path d="M190 300h420M190 565h420" stroke="#fb7185" stroke-width="24"/>
+  <circle cx="400" cy="430" r="70" fill="#881337"/><circle cx="400" cy="430" r="35" fill="#fda4af"/>
+  <text x="400" y="820" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#881337">HANDBAG DETAIL</text>
+  <text x="400" y="875" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#6b2b3a">Clasp and texture · Demo image</text>
+</svg>

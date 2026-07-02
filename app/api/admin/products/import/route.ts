@@ -1,43 +1,74 @@
 import { NextResponse } from "next/server";
-import { publicApiErrorMessage } from "@/lib/database-errors";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-import { importDemoProducts, parseProductImportCsv, validateUploadFile } from "@/lib/services/product-import";
+import {
+  importProducts,
+  parseProductImportFile,
+  prepareProductImport,
+  ProductImportValidationError,
+  recordFailedProductImport
+} from "@/lib/services/admin-product-import";
 
 export async function POST(request: Request) {
+  const admin = await requireAdmin().catch(() => null);
+  if (!admin) {
+    return NextResponse.json({ error: "Administrator authorization required." }, { status: 403 });
+  }
+
+  let fileName = "unknown";
   try {
-    await requireAdmin();
     const formData = await request.formData();
     const file = formData.get("file");
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: "CSV file is required." }, { status: 400 });
+      return NextResponse.json({ error: "A CSV or XLSX file is required." }, { status: 400 });
     }
 
-    validateUploadFile(file);
-    const csvText = await file.text();
-    const previewOnly = new URL(request.url).searchParams.get("preview") === "true";
+    fileName = file.name;
+    const parsed = await parseProductImportFile(file);
+    const dryRunOnly = new URL(request.url).searchParams.get("dryRun") === "true";
+    const plan = await prepareProductImport(prisma, parsed);
 
-    if (previewOnly) {
-      const parsed = parseProductImportCsv(csvText);
-      return NextResponse.json({
-        rowsRead: parsed.rowsRead,
-        preview: parsed.rows.slice(0, 10).map((row) => ({
-          rowNumber: row.rowNumber,
-          sku: row.sku,
-          name: row.name,
-          category: row.category,
-          regularPrice: row.regularPrice,
-          stock: row.stock,
-          status: row.status
-        })),
-        validationErrors: parsed.validationErrors,
-        warnings: parsed.warnings
+    if (dryRunOnly) {
+      return NextResponse.json(plan.dryRun, {
+        status: plan.dryRun.canImport ? 200 : 422
       });
     }
 
-    const summary = await importDemoProducts(prisma, { csvText, projectRoot: process.cwd() });
+    if (!plan.dryRun.canImport) {
+      await recordFailedProductImport(prisma, {
+        adminUserId: admin.id,
+        fileName,
+        reason: "VALIDATION_FAILED",
+        errorCount: plan.dryRun.errors.length
+      }).catch(() => undefined);
+      return NextResponse.json(plan.dryRun, { status: 422 });
+    }
+
+    const summary = await importProducts(prisma, {
+      adminUserId: admin.id,
+      fileName,
+      parsed
+    });
     return NextResponse.json(summary);
   } catch (error) {
-    return NextResponse.json({ error: publicApiErrorMessage("CSV product import failed.", error, "CSV import failed.") }, { status: 400 });
+    const validation =
+      error instanceof ProductImportValidationError ? error.dryRun : null;
+    await recordFailedProductImport(prisma, {
+      adminUserId: admin.id,
+      fileName,
+      reason: validation ? "VALIDATION_FAILED" : "IMPORT_FAILED",
+      errorCount: validation?.errors.length
+    }).catch(() => undefined);
+    if (validation) return NextResponse.json(validation, { status: 422 });
+    const message =
+      error instanceof Error &&
+      [
+        "The selected file is empty.",
+        "The upload must be 10 MB or smaller.",
+        "Only CSV and XLSX files are supported."
+      ].includes(error.message)
+        ? error.message
+        : "Product import failed safely. No partial import was committed.";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

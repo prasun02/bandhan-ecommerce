@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Women's Saree front demo placeholder</title>
+  <rect width="800" height="1000" fill="#fce7f3"/>
+  <circle cx="400" cy="170" r="55" fill="#831843"/>
+  <path d="M315 245q85-60 170 0l90 510H225z" fill="#be185d"/>
+  <path d="M325 260 510 730M280 420h260M255 560h310" stroke="#fbcfe8" stroke-width="22" fill="none"/>
+  <text x="400" y="855" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#831843">WOMEN'S SAREE</text>
+  <text x="400" y="910" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#6b2145">Front view · Demo image</text>
+</svg>

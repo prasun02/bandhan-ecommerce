@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title">
+  <title id="title">Belt front demo placeholder</title>
+  <rect width="800" height="1000" fill="#e7e5e4"/>
+  <rect x="105" y="400" width="590" height="120" rx="45" fill="#292524"/>
+  <rect x="110" y="370" width="180" height="180" rx="28" fill="none" stroke="#b45309" stroke-width="34"/>
+  <circle cx="625" cy="460" r="10" fill="#d6d3d1"/><circle cx="575" cy="460" r="10" fill="#d6d3d1"/>
+  <text x="400" y="760" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#292524">CLASSIC BELT</text>
+  <text x="400" y="815" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" fill="#57534e">Front view · Demo image</text>
+</svg>
